@@ -16,13 +16,13 @@ LEDを用いて可視光通信を行うためのプログラム
 
 - src/raspberrypi/send_string.c:
   - 起動すると LED から文字列を送信
-    (受信側: recieve_string)
+    (受信側: receive_string)
 
-- src/esp32/recieve_string.ino
+- src/esp32/receive_string.ino
   - 起動すると LED からの受信待 → 受信コードをシリアルコンソールに表示
     (送信側: send_string)
 
-- src/raspberrypi/recieve_string_from_android.c:
+- src/raspberrypi/receive_string_from_android.c:
   - 起動すると スマホの LED から送信したコードをシリアルコンソールに表示
     (送信側: ledcomm-android リポジトリ内の Android アプリ)
 
