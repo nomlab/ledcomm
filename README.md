@@ -30,7 +30,23 @@ LEDを用いて可視光通信を行うためのプログラム
 
 ## Requirements
 - Raspberry Pi のプログラムはコンパイル時に [wiringPi](http://wiringpi.com/) が必要
-- コンパイル時に `-lwiringPi` オプションを付けてコンパイル
 
-### GitHub からインストール
-- `git clone git://git.drogon.net/wiringPi`
+### ESP32
+- ESP32をPCに接続
+- `cd src/esp32`
+- `make build`
+
+### Raspberry Pi
+- 本リポジトリを実行する Raspberry Pi へクローン
+  - `git clone git@github.com:nomlab/ledcomm.git`
+- `cd src/raspberrypi`
+- `make setup`
+- `make build`
+
+## プログラムの実行
+
+### ESP32
+- `make build` 実行後，ESP32 の電源を投入
+
+### Raspberry Pi
+- `make run`
