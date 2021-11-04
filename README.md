@@ -1,7 +1,7 @@
 # ledcomm
 Visible light communication tool
 ## Summery
-LEDを用いて可視光通信を行うためのプログラム
+LEDを用いて可視光通信を行うためのプログラム集
 
 ## Manifest
 - README.md: このファイル
@@ -29,6 +29,8 @@ LEDを用いて可視光通信を行うためのプログラム
 ## コンパイルの方法
 
 ## Requirements
+- ESP32 のプログラムはコンパイルに開発環境が必要
+  - [espressif のサイト](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/linux-setup.html) を参考にインストール
 - Raspberry Pi のプログラムはコンパイル時に [wiringPi](http://wiringpi.com/) が必要
 
 ### ESP32
@@ -46,7 +48,17 @@ LEDを用いて可視光通信を行うためのプログラム
 ## プログラムの実行
 
 ### ESP32
+- ESP32 へ下記のように LED を接続
+  - 回路図
 - `make build` 実行後，ESP32 の電源を投入
 
 ### Raspberry Pi
+#### send_string / send_wifi_info
+- Raspberry Pi へ下記のように LED を接続
+  - 回路図
+- `make run`
+
+#### receive_string_from_android
+- Raspberry Pi へ下記のように LED を接続
+  - 回路図
 - `make run`
