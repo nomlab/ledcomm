@@ -3,7 +3,7 @@
 TARGETS     = send_wifi_info receive_string
 
 CC          = gcc
-CFLAGS      = -Wall -lwiringPi
+CFLAGS      = -Wall -I/usr/local/include -L/usr/local/lib -lwiringPi 
 
 # For old compilers
 # CFLAGS      = -Wall -march=native -O3 -std=c99
@@ -12,21 +12,18 @@ CFLAGS      = -Wall -lwiringPi
 # PERF        =
 
 SRCS        := $(wildcard *.c)
-OBJS        := $(SRCS:.c=.o)
-COMMON_OBJS := $(filter-out m-%.o,$(OBJS))
 
-.PHONY: all clean test test-perf allow-perf test-e2e
+.PHONY: all clean build
 
 .c.o:
 	gcc $(CFLAGS) -c $<
 
 all: $(TARGETS)
 
-$(foreach EXE,$(TARGETS),$(eval $(EXE): $(COMMON_OBJS) $(EXE).o))
+setup:
+	git clone git://git.drogon.net/wiringPi &&\
+	cd ~/wiringPi &&\
+  ./build
 
-# Remove backslash cf. https://koturn.hatenablog.com/entry/2016/06/26/020000
-$(foreach SRC,$(SRCS),$(eval $(subst \,,$(shell $(CC) -MM $(SRC)))))
-
-clean:
-	rm -f *.o
-	rm -f $(TARGETS)
+build: $(TARGETS)
+	$(foreach src,$(TARGETS),src.c)

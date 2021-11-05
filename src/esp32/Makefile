@@ -1,46 +1,24 @@
 # Makefile
 
-TARGETS     = m-sender m-broker m-receiver m-host_com m-trans_ctl m-amhs_com
+TARGETS     = receive_string receive_wifi_info
 
-CC          = gcc
-CFLAGS      = -Wall -march=native -O3
-LDLIBS      = -lpthread -lrt
-PERF        = perf stat -e cycles,instructions,cache-references,cache-misses,bus-cycles
+FQBN        = esp32:esp32:esp32
+PKG         = esp32:esp32
 
-# For old compilers
-# CFLAGS      = -Wall -march=native -O3 -std=c99
+.PHONY: install setup build upload
+# all: $(TARGETS)
+install:
+	curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=~/.local/bin sh
+	export PATH=$PATH:~/.local/bin
 
-# If not available perf command
-# PERF        =
+setup: 
+	arduino-cli core install $(PKG)
 
-SRCS        := $(wildcard *.c)
-OBJS        := $(SRCS:.c=.o)
-COMMON_OBJS := $(filter-out m-%.o,$(OBJS))
+build: $(TARGETS)
+	$(foreach sketch,$(TARGETS),arduino-cli compile -b $(FQBN) $(sketch))
 
-.PHONY: all clean test test-perf allow-perf test-e2e
+upload_receive_string: 
+	arduino-cli upload -p /dev/ttyUSB0 -b $(FQBN) receive_string
 
-.c.o:
-	gcc $(CFLAGS) -c $<
-
-all: $(TARGETS)
-
-$(foreach EXE,$(TARGETS),$(eval $(EXE): $(COMMON_OBJS) $(EXE).o))
-
-# Remove backslash cf. https://koturn.hatenablog.com/entry/2016/06/26/020000
-$(foreach SRC,$(SRCS),$(eval $(subst \,,$(shell $(CC) -MM $(SRC)))))
-
-clean:
-	rm -f *.o
-	rm -f $(TARGETS)
-	killall m-broker
-
-test:
-	@./m-broker & (sleep 1 && ./m-receiver -u 100 -c 100000)  & (sleep 2; ./m-sender -u 1 -c 100000 100)
-
-test-perf: allow-perf test-e2e
-
-allow-perf:
-	@sudo sh -c 'echo -1 >/proc/sys/kernel/perf_event_paranoid'
-
-test-e2e: $(TARGETS)
-	@$(PERF) ./m-broker & (sleep 1 && ./m-receiver -u 100 -c 100000)  & (sleep 2; ./m-sender -u 1 -c 100000 100)
+upload_receive_wifi_info: 
+	arduino-cli upload -p /dev/ttyUSB0 -b $(FQBN) receive_string
