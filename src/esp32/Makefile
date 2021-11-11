@@ -3,22 +3,19 @@
 TARGETS     = receive_string receive_wifi_info
 
 FQBN        = esp32:esp32:esp32
-PKG         = esp32:esp32
 
-.PHONY: install setup build upload
-# all: $(TARGETS)
-install:
-	curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=~/.local/bin sh
-	export PATH=$PATH:~/.local/bin
+.PHONY: build 
 
-setup: 
-	arduino-cli core install $(PKG)
+build: build_receive_string build_receive_wifi_info
 
-build: $(TARGETS)
-	$(foreach sketch,$(TARGETS),arduino-cli compile -b $(FQBN) $(sketch))
+build_receive_string: receive_string
+	arduino-cli compile -b $(FQBN) receive_string
+
+build_receive_wifi_info: receive_wifi_info
+	arduino-cli compile -b $(FQBN) receive_wifi_info
 
 upload_receive_string: 
 	arduino-cli upload -p /dev/ttyUSB0 -b $(FQBN) receive_string
 
 upload_receive_wifi_info: 
-	arduino-cli upload -p /dev/ttyUSB0 -b $(FQBN) receive_string
+	arduino-cli upload -p /dev/ttyUSB0 -b $(FQBN) receive_wifi_info
