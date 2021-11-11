@@ -34,24 +34,34 @@ LED を用いて可視光通信を行うためのプログラム集
   - 起動すると スマホの LED から送信したコードをシリアルコンソールに表示
     (送信側: ledcomm-android リポジトリ内の Android アプリ)
 
-## コンパイルの方法
-
 ## Requirements
-
-- ESP32 のプログラムはコンパイルに開発環境が必要
-- Raspberry Pi のプログラムはコンパイル時に [wiringPi](http://wiringpi.com/) が必要
 
 ### ESP32
 
-- ESP32 を PC に接続
+- ESP32 のプログラムはコンパイルに[arduno-cli](https://github.com/arduino/arduino-cli)が必要
+- [Installation ページ](https://arduino.github.io/arduino-cli/0.19/installation/)を参考にインストール
+  - 下記のコマンドを実行することで，<インストール先ディレクトリ> に arduino-cli がインストールされる
+    - `curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR=<インストール先ディレクトリ> sh`
+  - インストール後， PATH 環境変数に <インストール先ディレクトリ> を追加する
+- arduino-cli インストール後，ESP32 用にクロスコンパイルするために必要なツールをインストール
+  - `arduino-cli core install esp32:esp32`
+
+### Raspberry Pi
+
+- Raspberry Pi のプログラムはコンパイル時に [wiringPi](http://wiringpi.com/) が必要
+- [Download and Install ページ](http://wiringpi.com/download-and-install/)を参考にインストール
+  - 下記のコマンドを実行することで，wiringPi をインストール
+    - `sudo apt-get install wiringpi`
+
+## コンパイルの方法
+
+### ESP32
+
 - `cd src/esp32`
-- `make setup`
 - `make build`
 
 ### Raspberry Pi
 
-- 本リポジトリを実行する Raspberry Pi へクローン
-  - `git clone git@github.com:nomlab/ledcomm.git`
 - `cd src/raspberrypi`
 - `make setup`
 - `make build`
