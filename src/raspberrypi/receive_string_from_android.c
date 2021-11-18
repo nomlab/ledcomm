@@ -19,6 +19,20 @@ int get_light_intensity()
   return spi_buf[0] * 256 + spi_buf[1];
 }
 
+int set_light_intensity_threshold()
+{
+  int n;
+  int intensity = 0;
+
+  while (n < 100)
+  {
+    intensity += get_light_intensity();
+    n++;
+  }
+
+  return intensity / n;
+}
+
 int init_spi_channel()
 {
   int speed = 10000000; // 通信速度(100Hz)
@@ -128,35 +142,6 @@ void main(void)
 
   LED_read_binaly(str);
   printf("char is [%s]\n", str);
-  // while (1) {
-  //   int intensity = get_light_intensity();
-  //   printf("%d\n", intensity);
 
-  //   if (intensity >= THRESHOLD) {
-  //     printf("Data input.\n");
-  //     delay(SHORT_DELAY);
-
-  //     unsigned char data = 0;
-
-  //     // receive 8 bits.
-  //     for (int i = 0; i < 8; i++) {
-  //       data >>= 1;
-  //       int num = 0;
-
-  //       // take intensity three times.
-  //       for (int j = 0; j < 3; j++) {
-  //         int intensity = get_light_intensity();
-  //         if (intensity >= THRESHOLD) num++;
-  //         delay(SHORT_DELAY);
-  //       }
-
-  //       if (num >= 2) {
-  //         // set MSB
-  //         data &= 0x80;
-  //       }
-  //     }
-  //     printf("data is [%c]\n", data);
-  //     delay(SHORT_DELAY * 2);
-  //   }
-  // }
+  // int ave_intensity = set_light_intensity_threshold();
 }

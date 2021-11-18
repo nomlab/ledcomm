@@ -1,9 +1,13 @@
 #include <WiFi.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <inttypes.h>
+#include "esp_system.h"
+#include "esp_timer.h"
 
-#define THRESHOLD 300
-#define SHORT_DELAY 5
 #define LED_PIN 32
+
+int THRESHOLD = 0;
 
 void setup()
 {
@@ -108,8 +112,6 @@ void wifi_setup()
 int connectWiFi(char *ssid, char *passwd)
 {
   int try_times = 0;
-  //printf("SSID : %s\n", ssid);
-  //printf("PASS : %s\n", passwd);
 
   WiFi.begin(ssid, passwd);
   printf("Connecting to %s\n", "DUMMY-SSID-2");
@@ -133,88 +135,94 @@ void LED_read_binaly(char str_data[64])
   int value;
   int prev_v = 0;
   int n = 0;
-  int light_count = 0;
-  int timestamp = 0;
-  int binaly_count = 0;
-  int sig_len, sig_unit;
-  int edge_up_time, edge_down_time;
-  int bin_data[8] = {0};
+  __int64_t timestamp;
+  __int64_t sig_len = 0, sig_unit = 0;
+  __int64_t edge_up_time = 0, edge_down_time = 0;
   int bin_data_num = 0;
   int str_data_num = 0;
+  unsigned char data = 0;
 
   pinMode(LED_PIN, INPUT);
 
+  while (n < 100)
+  {
+    value = get_light_intensity();
+    if (THRESHOLD < value)
+    {
+      THRESHOLD = value;
+    }
+    n++;
+    delay(1);
+  }
+  printf("THRESHOLD : %d\n", THRESHOLD);
+
   while (1)
   {
-    if (n == 10000)
-    { //dodge a watchdog
-      delay(0);
-      n = 0;
-    }
-
+    // blink LED and read intensity
+    timestamp = esp_timer_get_time();
+    LED_on();
+    delay(0);
+    LED_off();
     value = get_light_intensity() - THRESHOLD;
 
     if (value < 0)
     {
       value = 0;
-      n++;
-    }
-    else
-    {
-      light_count += 1;
     }
 
-    if (0 < binaly_count && sig_unit * 3.5 < light_count)
+    if ((sig_unit != 0) && (sig_unit * 4 < (timestamp - edge_up_time)) && (edge_down_time < edge_up_time))
+    {
+      printf("\nsig_unit : %" PRId64 "\n", sig_unit);
       break;
+    }
 
     if (prev_v == 0 && value != 0)
     { // If edge up
-      edge_up_time = timestamp;
-      light_count = 0;
+      if ((sig_unit * 0.8) <= (timestamp - edge_down_time))
+      {
+        edge_up_time = timestamp;
+        // printf("(in edge up) edge_up_time : %g\n", edge_up_time);
+      }
     }
     else if (prev_v != 0 && value == 0)
-    { // If edge down
-      if (binaly_count == 0)
-      { // If signal_unit
-        if (10 < light_count)
-        {
-          sig_unit = light_count;
-          binaly_count++;
-          light_count = 0;
-        }
+    {
+      // If edge down
+      edge_down_time = timestamp;
+      // printf("edge_up_time : %g\n", edge_up_time);
+      // printf("edge_down_time : %g\n", edge_down_time);
+      sig_len = edge_down_time - edge_up_time;
+      if (sig_unit == 0)
+      {
+        // If signal_unit comes
+        printf("signal received\n");
+        sig_unit = sig_len;
+        printf("sig_unit : %" PRId64 "\n", sig_unit);
+        printf("1 :");
       }
       else
       {
-        edge_down_time = timestamp;
-        sig_len = edge_down_time - edge_up_time;
         if (sig_unit / 3 < sig_len && str_data_num < 64)
         {
-          bin_data[bin_data_num] = signal_check((double)sig_unit, (double)sig_len);
+          printf(" %" PRId64 "", sig_len); // print sig_len
+          if (sig_unit < sig_len * 0.8)
+          {
+            data |= 0x80;
+          }
+          data >>= 1;
           bin_data_num++;
           if (bin_data_num == 8)
           {
-            str_data[str_data_num] = 0;
+            printf("\n");
+            printf("char : %c\n", data);
+            str_data[str_data_num] = data;
             str_data_num++;
             bin_data_num = 0;
+            printf("%d :", str_data_num + 1);
           }
         }
-        light_count = 0;
       }
     }
     prev_v = value;
-    timestamp++;
   }
   str_data[str_data_num] = '\0';
-}
-
-int signal_check(double signal_unit, double signal_len)
-{
-  if ((signal_len * 0.9 < signal_unit))
-  {
-    return 0;
-  }
-  else
-  {
-    return 1;
-  }
 }
