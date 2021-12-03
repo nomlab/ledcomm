@@ -3,24 +3,41 @@
 #include <inttypes.h>
 #include "esp_system.h"
 #include "esp_timer.h"
+#include "SSD1306.h"
 
 #define LED_PIN 32
+SSD1306 display(0x3c, 21, 22, GEOMETRY_128_32);
 
-int THRESHOLD = 0;
+int THRESHOLD = 200;
+
+int data[1000000];
 
 void setup()
 {
   // initialize both serial ports:
+  init_display();
   Serial.begin(115200);
 }
 
 void loop()
 {
   char str[64] = "\0";
-  printf("---start---\n");
+  // printf("---start---\n");
   LED_read_binaly(str);
   printf("str = [%s]\n", str);
+  display.clear();
+  display.drawString(0, 0, str); //(0,0)の位置にstrを表示
+  display.display();
   delay(5000);
+  // print_v();
+}
+
+void init_display()
+{
+  display.init();                           //ディスプレイを初期化
+  display.setFont(ArialMT_Plain_16);        //フォントを設定
+  display.drawString(0, 0, "0123456789as"); //(0,0)の位置にHello Worldを表示
+  display.display();
 }
 
 void LED_on()
@@ -38,23 +55,33 @@ void LED_off()
 int get_light_intensity()
 {
   int intensity = 0;
-  pinMode(LED_PIN, INPUT);
-  digitalWrite(LED_PIN, 1);
-  intensity = analogRead(LED_PIN);
+  pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, 0);
+  pinMode(LED_PIN, ANALOG);
+  intensity = analogRead(LED_PIN);
   return intensity;
 }
 
 void print_v()
 {
   int value;
-  pinMode(LED_PIN, INPUT);
-  value = analogRead(LED_PIN);
-  printf("v=%d", value);
-  if (THRESHOLD < value)
-    printf("<----  t");
-  printf("\n");
-  delay(95);
+  __int64_t timestamp;
+
+  while (1)
+  {
+    timestamp = esp_timer_get_time();
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, 0);
+    pinMode(LED_PIN, ANALOG);
+    value = analogRead(LED_PIN);
+    // printf("v=%d", value);
+    // if (THRESHOLD < value)
+    //   printf("<----  t");
+    // printf("\n");
+
+    printf("%" PRId64 ",%d,%d\n", timestamp, THRESHOLD < value, value);
+    // delay(1);
+  }
 }
 
 void LED_read_binaly(char str_data[64])
@@ -81,7 +108,8 @@ void LED_read_binaly(char str_data[64])
     n++;
     delay(1);
   }
-  printf("THRESHOLD : %d\n", THRESHOLD);
+  THRESHOLD = 200;
+  // printf("THRESHOLD : %d\n", THRESHOLD);
 
   while (1)
   {
@@ -99,8 +127,12 @@ void LED_read_binaly(char str_data[64])
 
     if ((sig_unit != 0) && (sig_unit * 4 < (timestamp - edge_up_time)) && (edge_down_time < edge_up_time))
     {
-      printf("\nsig_unit : %" PRId64 "\n", sig_unit);
+      // printf("\nsig_unit : %" PRId64 "\n", sig_unit);
       break;
+    }
+    if (sig_unit != 0)
+    {
+      printf("%" PRId64 ",%d\n", timestamp, value);
     }
 
     if (prev_v == 0 && value != 0)
@@ -123,14 +155,14 @@ void LED_read_binaly(char str_data[64])
         // If signal_unit comes
         printf("signal received\n");
         sig_unit = sig_len;
-        printf("sig_unit : %" PRId64 "\n", sig_unit);
-        printf("1 :");
+        // printf("sig_unit : %" PRId64 "\n", sig_unit);
+        // printf("1 :");
       }
       else
       {
         if (sig_unit / 3 < sig_len && str_data_num < 64)
         {
-          printf(" %" PRId64 "", sig_len); // print sig_len
+          // printf(" %" PRId64 "", sig_len); // print sig_len
           if (sig_unit < sig_len * 0.8)
           {
             data |= 0x80;
@@ -139,12 +171,12 @@ void LED_read_binaly(char str_data[64])
           bin_data_num++;
           if (bin_data_num == 8)
           {
-            printf("\n");
-            printf("char : %c\n", data);
+            // printf("\n");
+            // printf("char : %c\n", data);
             str_data[str_data_num] = data;
             str_data_num++;
             bin_data_num = 0;
-            printf("%d :", str_data_num + 1);
+            // printf("%d :", str_data_num + 1);
           }
         }
       }
