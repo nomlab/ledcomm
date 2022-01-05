@@ -20,6 +20,7 @@ int THRESHOLD = 100;
 // struct data d[DATA_MAX];
 
 int data[DATA_MAX];
+// int diff_time[DATA_MAX];
 // char data[DATA_MAX][30];
 
 void setup()
@@ -32,6 +33,8 @@ void loop()
 {
   print_v();
   delay(15 * 1000);
+  // printf("%d\n", get_light_intensity());
+  // delay(1);
 }
 
 int get_light_intensity()
@@ -50,17 +53,19 @@ void print_v()
   int value = 0, prev_v = 0;
   int read_flag = 0;
   __int64_t timestamp;
+  // __int64_t prev_timestamp;
   __int64_t get_data_time;
 
   while (1)
   {
-    timestamp = esp_timer_get_time();
     value = get_light_intensity();
+    timestamp = esp_timer_get_time();
 
-    if (prev_v == 0 && (value != 0 && 10 < value))
+    if (prev_v == 0 && (value != 0 && 5 < value))
     {
       read_flag = 1;
       get_data_time = timestamp + DATA_INTERVAL; // 次にデータを取るべき時間のベースを設定
+      // prev_timestamp = timestamp;
     }
     prev_v = value;
 
@@ -72,8 +77,10 @@ void print_v()
       // d[i].v = value;
       // i++;
       // sprintf(data[i++], "%" PRId64 ",%d\n", timestamp, value);
+      // diff_time[i] = (int)timestamp - (int)prev_timestamp;
       data[i++] = value;
       get_data_time += DATA_INTERVAL; // 次の時間を求める
+      // prev_timestamp = timestamp;
     }
 
     if (DATA_MAX < i)
@@ -87,7 +94,7 @@ void print_v()
   for (i = 0; i < DATA_MAX; i++)
   {
     // printf("%" PRId64 ",%d\n", timestamp, value);
-    // printf("%s\n", data[i]);
     printf("%d\n", data[i]);
+    // printf("%d,%d\n", data[i], diff_time[i]);
   }
 }

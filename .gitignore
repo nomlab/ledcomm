@@ -1,0 +1,5 @@
+*.log
+*.csv
+*.txt
+/scripts/row_data/*
+/scripts/table_data/*
